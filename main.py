@@ -4,10 +4,11 @@ from PIL import Image
 
 from openai_api import state
 from user_flow import essentials
-from browsing import selenium_state
+# from browsing import selenium_state
 from util import util
+from lm_api import git, docker, general
 
-# load_dotenv()
+load_dotenv()
 
 def init_assistants():
     model = 'gpt-3.5-turbo'
@@ -29,5 +30,16 @@ def main():
     while True:
         user_input = input('')
 
+def lm_api():
+    command = input('Which command would you like to run?\n')
+    instruction, prompt_instruction = general.getInstructions(command)
+
+    agent = state.customChatGPT('gpt-3.5-turbo', f'You are a helpful assistant. {instruction}')
+    
+    while True:
+        user_input = input(f'Hi wihch {command} command do you need help with?\n')
+        print(agent.chat(f'{prompt_instruction}:\n{user_input}'))
+
 if __name__ == "__main__":
-    main()
+    # main()
+    lm_api()

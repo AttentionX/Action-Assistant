@@ -29,14 +29,15 @@ def gpt3(fileContent, question):
     print('OpenAI API response:', answer)
     return answer
     
-def chatGPT(chat_history):
+def chatGPT(chat_history, system=None):
     engine = "gpt-3.5-turbo"
-    system = "You are a helpful assistant. You can answer questions soley based on the information given below. If the question can't be answered with the information given by the user, tell the user that you were unable to find the answer from the given information and ask the user if you should answer the question on you own, without referring to the given information."
+    if system is None:
+        system = "You are a helpful assistant. You can answer questions soley based on the information given below. If the question can't be answered with the information given by the user, tell the user that you were unable to find the answer from the given information and ask the user if you should answer the question on you own, without referring to the given information."
     messages = [
         {"role": "system", "content": system},
     ]
     
-    messages = messages + chat_history
+    messages = messages + [{"role":"user", "content":chat_history}]
     
     response = openai.ChatCompletion.create(
         model = engine,
@@ -51,15 +52,20 @@ class customChatGPT:
         self.system = system
         self.messages = [{"role": "system", "content": self.system}]
 
-    def chat(self, message):
+    def chat(self, message, reset=False):
         # print(self.messages)
         self.messages.append({"role": "user", "content": message})
         
         # print(self.messages)
+        if reset:
+            message = {"role":"user", "content": self.messages}
+            messages = [{"role": "system", "content": self.system}].append(message)
+        else:
+            messages = self.messages
 
         response = openai.ChatCompletion.create(
             model = self.engine,
-            messages = self.messages,
+            messages = messages,
         )
         answer = response.choices[0].message.content
         self.messages.append({"role": "assistant", "content": answer})
