@@ -7,6 +7,9 @@ from sys import argv, exit, platform
 
 import action
 
+usnews = 'https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings'
+google  = 'https://google.com'
+
 black_listed_elements = action.black_listed_elements
 
 def crawl(page):
@@ -335,7 +338,8 @@ def crawl(page):
 
 def bs():
     # Make a GET request to the webpage you want to extract text from
-    response = requests.get("https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings")
+    
+    response = requests.get(google)
 
     # Create a BeautifulSoup object from the HTML content
     soup = BeautifulSoup(response.text, "html.parser")
@@ -354,7 +358,7 @@ def pw():
             url = 'https://www.usnews.com/best-graduate-schools/top-science-schools/computer-science-rankings'
 
             try:
-                await page.goto(url)
+                await page.goto(google)
             except Exception as e:
                 print(e)
                 await browser.close()
