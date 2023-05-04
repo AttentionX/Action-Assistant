@@ -165,7 +165,7 @@ YOUR COMMAND:
 
 def getWebsite(command):
 	instruction = """
-    Return which website to go to, to achieve the following instruction/objective: 
+    Return which website to go to, to achieve the following instruction/objective. Make your best guess and you must return a website url (with no other information or text): 
 
     ==========
     Examples: 
