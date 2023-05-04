@@ -63,7 +63,8 @@ def get_reviews(page, place_obj, max=50):
             "source_url": source_url,
             "place_id": place_id,
             "place_name": place_obj['name'],
-            "type": "visitor"
+            "type": "visitor",
+            "index": index
         }
         reviews.append(review)
         index += 1

@@ -117,7 +117,13 @@ def main():
             reviews_df = pd.DataFrame(reviews)
             fetched_reviews = search_reviews(reviews_df, query_embedding)
             fetched_reviews_list = fetched_reviews['review'].tolist()
+            # fetched_reviews_indices = fetched_reviews.index.tolist()
+
+            # add index number to each review
+
             fetched_reviews_string = '\n'.join(fetched_reviews_list)
+
+            # Change the instruction so the response refers to the source
             instruction = f"Based on the following information, answer the following question:\n-----\n{place_info['other']}\n{fetched_reviews_string}\n-----\nQ: {query}\nA:"
             chat_history_string = '\n'.join(chat_history)
             response = state.chatGPT(f"Previous conversations: {chat_history_string}\n\n{instruction}")
