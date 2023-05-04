@@ -41,12 +41,14 @@ def get_place_info(page):
 
     return info
 
-def get_reviews(page, place_obj):
+def get_reviews(page, place_obj, max=50):
     reviews = []
     elements = page.query_selector_all('#app-root > div > div > div > div:nth-child(7) > div:nth-child(2) > div.place_section.lcndr > div.place_section_content > ul > li')
+    more_button_selector = '#app-root > div > div > div > div:nth-child(7) > div:nth-child(2) > div.place_section.lcndr > div.lfH3O > a'
+
     num_li_elements = len(elements)
     index = 1
-    while index < num_li_elements:
+    while index <= num_li_elements:
         review1_selector = f'#app-root > div > div > div > div:nth-child(7) > div:nth-child(2) > div.place_section.lcndr > div.place_section_content > ul > li:nth-child({index}) > div.ZZ4OK > a > span.zPfVt'
         review = page.query_selector(review1_selector).inner_text()
         date = page.query_selector(f'#app-root > div > div > div > div:nth-child(7) > div:nth-child(2) > div.place_section.lcndr > div.place_section_content > ul > li:nth-child({index}) > div.sb8UA > span:nth-child(1) > span:nth-child(3)').inner_text()
@@ -65,6 +67,6 @@ def get_reviews(page, place_obj):
         }
         reviews.append(review)
         index += 1
-        if index > 10:
+        if index > max:
             break
     return reviews

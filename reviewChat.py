@@ -1,27 +1,37 @@
 import os
 from dotenv import load_dotenv
+import pandas as pd
 
 from util import mongodb
 from crawling import crawl as cr, navermap
+from openai_api import state
+from openai.embeddings_utils import get_embedding, cosine_similarity
 
 load_dotenv()
 
-def chatWithReviews(name):
-    # Search for name in database / naver map
-        # Return selected name and link, Check if selected one is correct
-    # Crawl reviews, save in database / translate
-    # Start chat
-    # Get user query, retrieve relevant reviews from database
-        # Also return source (url, full text, author, date etc.)
-    # synthesize reviews and use GPT-3.5 to generate a response
-        # Cite sources
+ # Search for name in database / naver map
+    # Return selected name and link, Check if selected one is correct
+# Crawl reviews, save in database / translate
+# Start chat
+# Get user query, retrieve relevant reviews from database
+    # Also return source (url, full text, author, date etc.)
+# synthesize reviews and use GPT-3.5 to generate a response
+    # Cite sources
+
+def chatWithReviews(chat_history, reviews):
     pass
+
+def search_reviews(df, query_embedding, n=5):
+    df['similarities'] = df.embedding.apply(lambda x: cosine_similarity(x, query_embedding))
+    res = df.sort_values('similarities', ascending=False).head(n)
+    return res
 
 def main():
     crawling = True
     db = mongodb.DB('ReviewChat')
-    tourism_collecgion = db.get_collection('tourism')
+    tourism_collection = db.get_collection('tourism')
     reviews_collection = db.get_collection('reviews')
+    queries_collection = db.get_collection('queries')
     item_1 = {
         "item_name" : "Blender",
         "item_price" : 100,
@@ -58,22 +68,62 @@ def main():
             'other': place_info['other'],
             'url': place_page_url
         }
-        tourism_collecgion.insert_one(place_obj)
-        print('Saved place info')
+        found_place = tourism_collection.find_one({'place_id': place_id}, {'_id': 1})
+        if(found_place):
+            # update existing data
+            tourism_collection.update_one({'_id': found_place['_id']}, {'$set': place_obj})
+            print('Updated place info')
+        else:
+            # insert new data
+            tourism_collection.insert_one(place_obj)
+            print('Saved place info')
+
+        # If place exists, get reviews from database
 
         # Get reviews
         review_url = navermap.get_map_review_url(place_id)
         review1_selector = '#app-root > div > div > div > div:nth-child(7) > div:nth-child(2) > div.place_section.lcndr > div.place_section_content > ul > li:nth-child(1) > div.ZZ4OK > a > span.zPfVt'
         name_selector = '#_title > span.Fc1rA'
         crawl.go_to_page(review_url, name_selector)
-        reviews = navermap.get_reviews(page, place_obj)
-        # Save reviews
+        reviews = navermap.get_reviews(page, place_obj, 20)
+        for i in range(len(reviews)):
+            review = reviews[i]
+            review_text = review['review']
+            embedding = state.embedding(review_text)
+            review['embedding'] = embedding
+            reviews[i] = review
+        # Save reviews (Make review, author, place_id unique)
         reviews_collection.insert_many(reviews)
         print('Saved reviews')
 
         # Translate
 
         # Get blog reviews
+
+        chat_history = []
+        chat_agent = state.customChatGPT()
+        system = ''
+        while True:
+            # Start chat
+            query = input("Enter query:\n")
+            query_embedding = state.embedding(query)
+            query_obj = {
+                'query': query,
+                'embedding': query_embedding
+            }
+            queries_collection.insert_one(query_obj)
+
+            # Get relevant reviews
+            reviews_df = pd.DataFrame(reviews)
+            fetched_reviews = search_reviews(reviews_df, query_embedding)
+            fetched_reviews_list = fetched_reviews['review'].tolist()
+            fetched_reviews_string = '\n'.join(fetched_reviews_list)
+            instruction = f"Based on the following information, answer the following question:\n-----\n{place_info['other']}\n{fetched_reviews_string}\n-----\nQ: {query}\nA:"
+            chat_history_string = '\n'.join(chat_history)
+            response = state.chatGPT(f"Previous conversations: {chat_history_string}\n\n{instruction}")
+            response = chat_agent.chat(instruction)
+            chat_history.append(f"{query}\n{response}")
+            print(response)
 
 
 

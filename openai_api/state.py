@@ -29,10 +29,9 @@ def gpt3(fileContent, question):
     print('OpenAI API response:', answer)
     return answer
     
-def chatGPT(chat_history, system=None):
+def chatGPT(chat_history, system='You are a helpful assistant.'):
     engine = "gpt-3.5-turbo"
-    if system is None:
-        system = "You are a helpful assistant. You can answer questions soley based on the information given below. If the question can't be answered with the information given by the user, tell the user that you were unable to find the answer from the given information and ask the user if you should answer the question on you own, without referring to the given information."
+    # system = "You are a helpful assistant. You can answer questions soley based on the information given below. If the question can't be answered with the information given by the user, tell the user that you were unable to find the answer from the given information and ask the user if you should answer the question on you own, without referring to the given information."
     messages = [
         {"role": "system", "content": system},
     ]
@@ -47,7 +46,7 @@ def chatGPT(chat_history, system=None):
     return answer
 
 class customChatGPT:
-    def __init__(self, engine, system):
+    def __init__(self, engine="gpt-3.5-turbo", system="You are a helpful assistant."):
         self.engine = engine
         self.system = system
         self.messages = [{"role": "system", "content": self.system}]
